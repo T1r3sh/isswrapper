@@ -1,4 +1,6 @@
 import json
+import pyarrow as pa
+import pyarrow.parquet as pq
 
 # from lxml import html
 import pandas as pd
@@ -73,3 +75,30 @@ def preprocess_site_news_data(raw_data: list, name: str = "sitenews"):
         processed_data.extend(converted_site_news_data)
 
     return processed_data
+
+
+def save_dataframe_to_parquet(dataframe: pd.DataFrame, file_path: str):
+    """
+    Save a DataFrame to a Parquet file.
+
+    :param dataframe: The DataFrame to be saved.
+    :type dataframe: pd.DataFrame
+    :param file_path: The path to the Parquet file.
+    :type file_path: str
+    """
+    table = pa.Table.from_pandas(dataframe)
+    pq.write_table(table, file_path, compression="GZIP")
+
+
+def read_parquet_into_dataframe(file_path: str):
+    """
+    Read data from a Parquet file and return as a DataFrame.
+
+    :param file_path: The path to the Parquet file.
+    :type file_path: str
+    :return: DataFrame containing data from the Parquet file.
+    :rtype: pd.DataFrame
+    """
+    table = pq.read_table(file_path)
+    dataframe = table.to_pandas()
+    return dataframe

@@ -5,6 +5,7 @@ import numpy as np
 
 async def safe_fetch(fetch_function, semaphore, *args, **kwargs):
     """
+    Outdated
     Safely fetch data using a provided semaphore to limit concurrent coroutines.
 
     This function wraps a given fetching function with a semaphore, which helps limit
@@ -26,6 +27,7 @@ async def safe_fetch(fetch_function, semaphore, *args, **kwargs):
 
 async def fetch_data(base_url: str, endpoint: str = "", params: dict = None) -> dict:
     """
+    Outdated
     Fetches data asynchronously from a specified API endpoint.
 
     This function uses the httpx library to send an HTTP GET request to the specified
@@ -48,6 +50,7 @@ async def fetch_data(base_url: str, endpoint: str = "", params: dict = None) -> 
 
 def run_async(func, *args, **kwargs):
     """
+
     Run an asynchronous function synchronously using asyncio.run().
 
     This function provides a convenient way to run an asynchronous function
