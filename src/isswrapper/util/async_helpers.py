@@ -3,49 +3,48 @@ import httpx
 import numpy as np
 
 
-async def safe_fetch(fetch_function, semaphore, *args, **kwargs):
+async def fetch_all(
+    urls: list,
+    chunk_size: int = 500,
+    delay: int = 10,
+    timeout: int = 30,
+    max_connections: int = 10,
+    max_keepalive_connections: int = 5,
+):
     """
-    Outdated
-    Safely fetch data using a provided semaphore to limit concurrent coroutines.
+    Asynchronously performs HTTP requests for a list of URLs with the option of chunking and a delay between requests.
 
-    This function wraps a given fetching function with a semaphore, which helps limit
-    the number of coroutines that can run concurrently. It's particularly useful
-    when you want to control the number of simultaneous requests to a server.
-
-    :param fetch_function: The fetching function to be executed asynchronously.
-    :type fetch_function: async function
-    :param semaphore: The configured semaphore for limiting concurrency.
-    :type semaphore: asyncio.Semaphore
-    :param args: Arguments to be passed to the fetching function.
-    :param kwargs: Keyword arguments to be passed to the fetching function.
-    :return: The result of the fetch_function, often a JSON dictionary.
-    :rtype: dict
+    :param urls: List of URLs for requests.
+    :type urls: list
+    :param chunk_size: Chunk size (number of URLs in a single request), defaults to 500.
+    :type chunk_size: int, optional
+    :param delay: Delay between chunks in seconds, defaults to 10.
+    :type delay: int, optional
+    :param timeout: Maximum wait time for a server response, defaults to 30 seconds.
+    :type timeout: int, optional
+    :param max_connections: Maximum number of concurrent connections, defaults to 10.
+    :type max_connections: int, optional
+    :param max_keepalive_connections: Maximum number of connections to keep alive, defaults to 5.
+    :type max_keepalive_connections: int, optional
+    :return: List of asynchronous response results for the requests.
+    :rtype: list
     """
-    async with semaphore:
-        return await fetch_function(*args, **kwargs)
+    chunks = [urls[i : i + chunk_size] for i in range(0, len(urls), chunk_size)]
+    results = []
+    async with httpx.AsyncClient(
+        limits=httpx.Limits(
+            max_connections=max_connections,
+            max_keepalive_connections=max_keepalive_connections,
+        ),
+        timeout=httpx.Timeout(timeout),
+    ) as client:
+        for chunk in chunks:
+            tasks = [asyncio.create_task(client.get(url)) for url in chunk]
+            chunk_responses = await asyncio.gather(*tasks)
+            results.extend(chunk_responses)
 
-
-async def fetch_data(base_url: str, endpoint: str = "", params: dict = None) -> dict:
-    """
-    Outdated
-    Fetches data asynchronously from a specified API endpoint.
-
-    This function uses the httpx library to send an HTTP GET request to the specified
-    API endpoint and retrieves the response in JSON format. It is designed to work
-    asynchronously, making it suitable for handling multiple concurrent requests.
-
-    :param base_url: The base URL of the API to connect to, e.g., "https://iss.moex.com/iss" for sitenews
-    :type base_url: str
-    :param endpoint: The API endpoint to fetch data from, e.g., "/sitenews.json".
-    :type endpoint: str, optional
-    :param params: Optional request parameters to include in the request.
-    :type params: dict, optional
-    :return: A dictionary containing the JSON response data.
-    :rtype: dict
-    """
-    async with httpx.AsyncClient(base_url=base_url) as client:
-        response = await client.get(endpoint, params=params)
-        return response.json()
+            await asyncio.sleep(delay)
+    return results
 
 
 def run_async(func, *args, **kwargs):
@@ -67,12 +66,12 @@ def run_async(func, *args, **kwargs):
     return asyncio.run(func(*args, **kwargs))
 
 
-if __name__ == "__main__":
-    sem = asyncio.Semaphore(5)
-    res = run_async(
-        safe_fetch,
-        fetch_function=fetch_data,
-        semaphore=sem,
-        base_url="https://iss.moex.com/iss",
-        endpoint="/sitenews/{0}.json".format(29287),
-    )
+# if __name__ == "__main__":
+#     sem = asyncio.Semaphore(5)
+#     res = run_async(
+#         safe_fetch,
+#         fetch_function=fetch_data,
+#         semaphore=sem,
+#         base_url="https://iss.moex.com/iss",
+#         endpoint="/sitenews/{0}.json".format(29287),
+#     )

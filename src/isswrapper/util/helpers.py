@@ -2,14 +2,13 @@ import json
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-# from lxml import html
 import pandas as pd
 import requests
 import datetime
 
 meta_dict = {
     "datetime": "datetime64[ns]",
-    "date": "datetime64[D]",
+    "date": "datetime64[ns]",
     "time": str,
     "string": str,
     "int64": "Int64",
@@ -46,7 +45,9 @@ def convert_data_with_metadata(data, metadata, columns):
         "int32": int,
         "int": int,
         "string": str,
-        "datetime": lambda x: datetime.datetime.strptime(x, "%Y-%m-%d %H:%M:%S")
+        "double": float,
+        "datetime": lambda x: datetime.datetime.strptime(x, "%Y-%m-%d %H:%M:%S"),
+        "date": lambda x: datetime.datetime.strptime(x, "%Y-%m-%d").date(),
         # expandable
     }
     for row in data:
@@ -54,6 +55,9 @@ def convert_data_with_metadata(data, metadata, columns):
         for col_name, col_value, col_type in zip(
             columns, row, [metadata[col]["type"] for col in columns]
         ):
+            if col_value == None:
+                converted_row[col_name] = None
+                continue
             handler = type_handlers.get(col_type, lambda x: x)
             converted_row[col_name] = handler(col_value)
 
@@ -62,7 +66,7 @@ def convert_data_with_metadata(data, metadata, columns):
     return converted_data
 
 
-def preprocess_site_news_data(raw_data: list, name: str = "sitenews"):
+def preprocess_raw_json(raw_data: list, name: str = "sitenews"):
     processed_data = []
 
     for entry in raw_data:
