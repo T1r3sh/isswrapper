@@ -97,11 +97,11 @@ class SiteNews(object):
         return """Total news loaded: {0}""".format(len(self.__df))
 
 
-if __name__ == "__main__":
-    sn_instance = SiteNews_1()
-    filter = lambda x: x[
-        x["title"].str.contains("Об изменении риск-параметров на фондовом рынке")
-    ]
-    sn_instance.load(ts1=datetime.datetime(2022, 1, 1), d_filter=filter, load_body=True)
+# if __name__ == "__main__":
+#     sn_instance = SiteNews_1()
+#     filter = lambda x: x[
+#         x["title"].str.contains("Об изменении риск-параметров на фондовом рынке")
+#     ]
+#     sn_instance.load(ts1=datetime.datetime(2022, 1, 1), d_filter=filter, load_body=True)
 
-    print(sn_instance.df.head())
+#     print(sn_instance.df.head())
