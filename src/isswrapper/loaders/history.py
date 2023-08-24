@@ -1,5 +1,6 @@
 from isswrapper.util.async_helpers import fetch_all
 from isswrapper.util.helpers import preprocess_raw_json
+from isswrapper.loaders.securities import security_boards
 import asyncio
 import datetime
 import nest_asyncio
@@ -11,13 +12,23 @@ nest_asyncio.apply()
 
 async def security_history(
     sec_id: str,
-    engine: str,
-    market: str,
-    board: str,
+    engine: str = None,
+    market: str = None,
+    board: str = None,
     date_from: datetime.date = None,
     date_till: datetime.date = None,
 ):
     # https://iss.moex.com/iss/reference/815
+    # loading defaults
+    _default = dict(
+        security_boards(sec_id)
+        .query("is_primary==1")
+        .loc[0, ["boardid", "engine", "market"]]
+    )
+    engine = engine or _default["engine"]
+    market = market or _default["market"]
+    board = board or _default["boardid"]
+
     fetch_result = []
     sec_url = "https://iss.moex.com/iss/history/engines/{0}/markets/{1}/boards/{2}/securities/{3}.json".format(
         engine, market, board, sec_id
@@ -49,7 +60,7 @@ if __name__ == "__main__":
     import time
 
     st_time = time.time()
-    df = asyncio.run(security_history("ABRD", "stock", "shares", "TQBR"))
+    df = asyncio.run(security_history("ABRD"))
     print(df.head())
     print("__________________________")
     print(df.tail())
