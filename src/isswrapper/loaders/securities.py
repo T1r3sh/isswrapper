@@ -65,3 +65,8 @@ def security_bondyields(q="", boardid="", date=None):
         date = date.strftime("%Y-%m-%d")
     df = request_df(url.format(q, boardid, date), name)
     return df
+
+
+if __name__ == "__main__":
+    df = security_boards("DASB")
+    print(df.head())

@@ -22,8 +22,8 @@ async def security_history(
     # loading defaults
     _default = dict(
         security_boards(sec_id)
-        .query("is_primary==1")
-        .loc[0, ["boardid", "engine", "market"]]
+        .query("is_primary==1")[["boardid", "engine", "market"]]
+        .iloc[0]
     )
     engine = engine or _default["engine"]
     market = market or _default["market"]
@@ -60,7 +60,9 @@ if __name__ == "__main__":
     import time
 
     st_time = time.time()
-    df = asyncio.run(security_history("ABRD"))
+    # df = asyncio.run(security_history("ABRD"))
+    df = asyncio.run(security_history("DASB"))
+
     print(df.head())
     print("__________________________")
     print(df.tail())
