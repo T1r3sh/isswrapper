@@ -20,11 +20,7 @@ async def security_history(
 ):
     # https://iss.moex.com/iss/reference/815
     # loading defaults
-    _default = dict(
-        security_boards(sec_id)
-        .query("is_primary==1")[["boardid", "engine", "market"]]
-        .iloc[0]
-    )
+    _default = dict(security_boards(sec_id).query("is_primary==1").iloc[0])
     engine = engine or _default["engine"]
     market = market or _default["market"]
     board = board or _default["boardid"]
@@ -49,6 +45,7 @@ async def security_history(
     sec_df = pd.DataFrame(
         preprocess_raw_json([resp.json() for resp in fetch_result], "history")
     )
+    sec_df["currencyid"] = _default["currencyid"]
     return sec_df
 
 
